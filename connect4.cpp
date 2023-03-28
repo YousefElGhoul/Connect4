@@ -22,9 +22,34 @@
 #define KEY_ENTER 13
 #define KEY_ESC 27
 
-int board[42] = {};
+int board[49] = {};
 char arrow;
-int selector;
+int selector, player = 1;
+std::string lineInput;
+class PlayerData{
+    public:
+        PlayerData(std::string str, int num): name(str), score(num){};
+
+
+        void setName(std::string str){name = str;}
+        void setScore(int num){score = num;}
+        std::string getName(){return name;}
+        int getScore(){return score;}
+
+        bool isEmpty(){return name.empty();}
+        void incScore(){score++;}
+    private:
+        std::string name;
+        int score;
+};
+
+PlayerData *player1 = new PlayerData("", 0);
+PlayerData *player2 = new PlayerData("", 0);
+const PlayerData *empty = new PlayerData("", 0);
+
+int isEven(int x){return x % 2 == 0 ? 2 : 1;}
+std::string getName(int player){return isEven(player) == 1 ? player1->getName() : player2->getName();}
+
 
 class Display{
     public:
@@ -98,6 +123,20 @@ class Menus{
                 default:
                     break;
                 }
+                break;
+            case NAME:
+                Display::refresh(LOGO);
+                std::cout << "Player 1: \n";
+                getline(std::cin, lineInput);
+                player1->setName(lineInput);
+                if(player1->isEmpty())
+                    player1->setName("Player 1");
+                std::cout << "\nPlayer 2: \n";
+                getline(std::cin, lineInput);
+                player2->setName(lineInput);
+                if(player2->isEmpty())
+                    player2->setName("Player 2");
+                Menus::select(GAME);
                 break;
             default:
                 std::cout << "\nMissing Screen!\n";
