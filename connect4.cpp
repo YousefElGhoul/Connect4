@@ -32,7 +32,7 @@
 int board[BOARD_HEIGHT][BOARD_WIDTH] = {};
 char board_selector[BOARD_WIDTH] = {};
 char arrow;
-int selector, player = 1;
+int selector, counter, player = 1;
 std::string lineInput;
 
 class PlayerData{
@@ -116,8 +116,64 @@ class Connect4{
             }
         }
         static int checkWin(){
-            // To be Implemented
-            return -1;
+            for (int i = 0; i < BOARD_HEIGHT - 4; i++)
+                for (int j = 0; j < BOARD_WIDTH - 4; j++){
+                    if (board[i+0][j+0] == 1 &&
+                        board[i+0][j+1] == 1 &&
+                        board[i+0][j+2] == 1 &&
+                        board[i+0][j+3] == 1)
+                        return GAME_STATE_RESULT;
+                    else
+                    if (board[i+0][j+0] == 1 &&
+                        board[i+1][j+0] == 1 &&
+                        board[i+2][j+0] == 1 &&
+                        board[i+3][j+0] == 1)
+                        return GAME_STATE_RESULT;
+                    else
+                    if (board[i+0][j+0] == 1 &&
+                        board[i+1][j+1] == 1 &&
+                        board[i+2][j+2] == 1 &&
+                        board[i+3][j+3] == 1)
+                        return GAME_STATE_RESULT;
+                    else
+                    if (board[i+3][j+0] == 1 &&
+                        board[i+2][j+0] == 1 &&
+                        board[i+1][j+0] == 1 &&
+                        board[i+0][j+0] == 1)
+                        return GAME_STATE_RESULT;
+                    else
+                        
+                    if (board[i+0][j+0] == 2 &&
+                        board[i+0][j+1] == 2 &&
+                        board[i+0][j+2] == 2 &&
+                        board[i+0][j+3] == 2)
+                        return GAME_STATE_RESULT;
+                    else
+                    if (board[i+0][j+0] == 2 &&
+                        board[i+1][j+0] == 2 &&
+                        board[i+2][j+0] == 2 &&
+                        board[i+3][j+0] == 2)
+                        return GAME_STATE_RESULT;
+                    else
+                    if (board[i+0][j+0] == 2 &&
+                        board[i+1][j+1] == 2 &&
+                        board[i+2][j+2] == 2 &&
+                        board[i+3][j+3] == 2)
+                        return GAME_STATE_RESULT;
+                    else
+                    if (board[i+3][j+0] == 2 &&
+                        board[i+2][j+0] == 2 &&
+                        board[i+1][j+0] == 2 &&
+                        board[i+0][j+0] == 2)
+                        return GAME_STATE_RESULT;
+                }
+            for (int i = 0; i < BOARD_HEIGHT; i++)
+                for (int j = 0; j < BOARD_WIDTH; j++)
+                    if(board[i][j] != 0)
+                        counter++;
+            if(counter == 42)
+                return GAME_STATE_DRAW;
+            return GAME_STATE_ONGOING;
         }
     private:
         static void clearBoard() {
