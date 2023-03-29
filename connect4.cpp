@@ -14,6 +14,10 @@
 #define NAME 4
 #define HIGH_SCORES 5
 #define RESTART 6
+#define RESTART_MENU "\t\t\t ██████╗ ███████╗ ███╗   ██╗███╗   ██╗███████╗ ██████╗████████╗    ██╗  ██╗\n\t\t\t██╔════╝██╔════██╗████╗  ██║████╗  ██║██╔════╝██╔════╝╚══██╔══╝    ██║  ██║\n\t\t\t██║     ██║    ██║██╔██╗ ██║██╔██╗ ██║█████╗  ██║        ██║       ███████║\n\t\t\t██║     ██║    ██║██║╚██╗██║██║╚██╗██║██╔══╝  ██║        ██║       ╚════██║\n\t\t\t╚██████╗╚███████╔╝██║ ╚████║██║ ╚████║███████╗╚██████╗   ██║            ██║\n\t\t\t ╚═════╝ ╚══════╝ ╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═╝            ╚═╝\n  ________________________\n |                        |\n |        RESTART         |\n |________________________|\n  ________________________\n |                        |\n |         EXIT           |\n |________________________|\n"
+#define RESTART_MENU_RESTART_SELECTED "\t\t\t ██████╗ ███████╗ ███╗   ██╗███╗   ██╗███████╗ ██████╗████████╗    ██╗  ██╗\n\t\t\t██╔════╝██╔════██╗████╗  ██║████╗  ██║██╔════╝██╔════╝╚══██╔══╝    ██║  ██║\n\t\t\t██║     ██║    ██║██╔██╗ ██║██╔██╗ ██║█████╗  ██║        ██║       ███████║\n\t\t\t██║     ██║    ██║██║╚██╗██║██║╚██╗██║██╔══╝  ██║        ██║       ╚════██║\n\t\t\t╚██████╗╚███████╔╝██║ ╚████║██║ ╚████║███████╗╚██████╗   ██║            ██║\n\t\t\t ╚═════╝ ╚══════╝ ╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═╝            ╚═╝\n \t ________________________\n \t|                        |\n \t|        RESTART         |\n \t|________________________|\n  ________________________\n |                        |\n |         EXIT           |\n |________________________|\n"
+#define RESTART_MENU_EXIT_SELECTED "\t\t\t ██████╗ ███████╗ ███╗   ██╗███╗   ██╗███████╗ ██████╗████████╗    ██╗  ██╗\n\t\t\t██╔════╝██╔════██╗████╗  ██║████╗  ██║██╔════╝██╔════╝╚══██╔══╝    ██║  ██║\n\t\t\t██║     ██║    ██║██╔██╗ ██║██╔██╗ ██║█████╗  ██║        ██║       ███████║\n\t\t\t██║     ██║    ██║██║╚██╗██║██║╚██╗██║██╔══╝  ██║        ██║       ╚════██║\n\t\t\t╚██████╗╚███████╔╝██║ ╚████║██║ ╚████║███████╗╚██████╗   ██║            ██║\n\t\t\t ╚═════╝ ╚══════╝ ╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═╝            ╚═╝\n  ________________________\n |                        |\n |        RESTART         |\n |________________________|\n \t ________________________\n \t|                        |\n \t|         EXIT           |\n \t|________________________|\n"
+
 
 #define KEY_UP 72
 #define KEY_DOWN 80
@@ -328,6 +332,62 @@ class Menus{
                     break;
                 case GAME_STATE_DRAW:
                     Menus::select(DRAW);
+                default:
+                    break;
+                }
+                break;
+            case WIN:
+                std::cout << "\t\t\t\t\t\t" << getName(player) << " Wins!\n";
+                switch (isEven(player)){
+                case 1:
+                    player1->incScore();
+                    break;
+                case 2:
+                    player2->incScore();
+                default:
+                    break;
+                }
+                system("pause");
+                Menus::select(RESTART);
+                break;
+            case DRAW:
+                std::cout << "\t\t\t\t\t\tGame is a Draw!\n";
+                system("pause");
+                Menus::select(RESTART);
+                break;
+            case RESTART:
+                Display::refresh(RESTART_MENU);
+                arrow = getch();
+                do{
+                    switch (arrow){
+                    case KEY_ESC:
+                        exitProgram();
+                    default:
+                        arrow = getch();
+                        switch (arrow){
+                        case KEY_UP:
+                            Display::refresh(RESTART_MENU_RESTART_SELECTED);
+                            selector = 'R';
+                            break;
+                        case KEY_DOWN:
+                            Display::refresh(RESTART_MENU_EXIT_SELECTED);
+                            selector = 'E';
+                            break;
+                        case KEY_ESC:
+                            exitProgram();
+                        default:
+                            break;
+                        }
+                        break;
+                    }
+                }while (arrow != KEY_ENTER);
+                switch (selector){
+                case 'R':
+                    Connect4::initGame();
+                    Menus::select(GAME);
+                    break;
+                case 'E':
+                    Menus::select(HIGH_SCORES);
                 default:
                     break;
                 }
