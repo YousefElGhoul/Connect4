@@ -22,10 +22,12 @@
 #define KEY_ENTER 13
 #define KEY_ESC 27
 
-int board[49] = {};
+int board[6][7] = {};
+char board_selector[7] = {};
 char arrow;
 int selector, player = 1;
 std::string lineInput;
+
 class PlayerData{
     public:
         PlayerData(std::string str, int num): name(str), score(num){};
@@ -55,16 +57,38 @@ class Display{
     public:
         static void initDisplay(){
             system("chcp 65001");
-            system("color a");
             clear();
         }
         static void refresh(std::string str){
             clear();
             print(str);
         }
+        static void printBoard(){
+            std::cout << std::endl << player1->getName() << " (\u001b[31mO\u001b[36m) Score [" << player1->getScore() << "]  -  " << player2->getName() << " (\u001b[33mO\u001b[36m) Score [" << player2->getScore() << "]" << std::endl << std::endl
+                      << "\t\t\t\t\t _________________________________________\n";
+            for (int i = 0; i < 6; i++)
+                    std::cout << "\t\t\t\t\t|     |     |     |     |     |     |     |\n"
+                              << "\t\t\t\t\t|  " << translateBoard(board[i][0]) << "  |  " << translateBoard(board[i][1]) << "  |  " << translateBoard(board[i][2]) << "  |  " << translateBoard(board[i][3]) << "  |  " << translateBoard(board[i][4]) << "  |  " << translateBoard(board[i][5]) << "  |  " << translateBoard(board[i][6]) << "  |\n"
+                              << "\t\t\t\t\t|_____|_____|_____|_____|_____|_____|_____|\n";
+            std::cout << "\n\t\t\t\t\t ";
+            for (int i = 0; i < 7; i++)
+                std::cout << "  " << board_selector[i] << "  ";
+            std::cout << "\n\n";
+        }
     private:
         static void clear(){system("CLS");}
-        static void print(std::string str){std::cout << "\u001b[36m" << str;}
+        static void print(std::string str){std::cout << std::endl << "\u001b[36m" << str;}
+        static std::string translateBoard(int n){
+            switch (n){
+                case 1:
+                    return "\u001b[31mO\u001b[36m";
+                case 2:
+                    return "\u001b[33mO\u001b[36m";
+                case 0:
+                default:
+                    return " ";
+            }
+        }
 };
 
 class Connect4{
@@ -77,8 +101,9 @@ class Connect4{
         }
     private:
         static void clearBoard() {
-            for (int i = 0; i < 42; i++)
-                board[i] = 0;
+            for (int i = 0; i < 6; i++)
+                for (int j = 0; j < 7; j++)
+                    board[i][j] = 0;
         }
 };
 
@@ -137,6 +162,10 @@ class Menus{
                 if(player2->isEmpty())
                     player2->setName("Player 2");
                 Menus::select(GAME);
+                break;
+            case GAME:
+                Display::refresh(LOGO);
+                Display::printBoard();
                 break;
             default:
                 std::cout << "\nMissing Screen!\n";
