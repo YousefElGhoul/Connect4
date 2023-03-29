@@ -22,8 +22,15 @@
 #define KEY_ENTER 13
 #define KEY_ESC 27
 
-int board[6][7] = {};
-char board_selector[7] = {};
+#define GAME_STATE_DRAW 0
+#define GAME_STATE_RESULT 1
+#define GAME_STATE_ONGOING -1
+
+#define BOARD_HEIGHT 6
+#define BOARD_WIDTH 7
+
+int board[BOARD_HEIGHT][BOARD_WIDTH] = {};
+char board_selector[BOARD_WIDTH] = {};
 char arrow;
 int selector, player = 1;
 std::string lineInput;
@@ -31,7 +38,6 @@ std::string lineInput;
 class PlayerData{
     public:
         PlayerData(std::string str, int num): name(str), score(num){};
-
 
         void setName(std::string str){name = str;}
         void setScore(int num){score = num;}
@@ -57,6 +63,7 @@ class Display{
     public:
         static void initDisplay(){
             system("chcp 65001");
+            system("mode con: cols=121 lines=40");
             clear();
         }
         static void refresh(std::string str){
@@ -66,13 +73,13 @@ class Display{
         static void printBoard(){
             std::cout << std::endl << player1->getName() << " (\u001b[31mO\u001b[36m) Score [" << player1->getScore() << "]  -  " << player2->getName() << " (\u001b[33mO\u001b[36m) Score [" << player2->getScore() << "]" << std::endl << std::endl
                       << "\t\t\t\t\t _________________________________________\n";
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < BOARD_HEIGHT; i++)
                     std::cout << "\t\t\t\t\t|     |     |     |     |     |     |     |\n"
                               << "\t\t\t\t\t|  " << translateBoard(board[i][0]) << "  |  " << translateBoard(board[i][1]) << "  |  " << translateBoard(board[i][2]) << "  |  " << translateBoard(board[i][3]) << "  |  " << translateBoard(board[i][4]) << "  |  " << translateBoard(board[i][5]) << "  |  " << translateBoard(board[i][6]) << "  |\n"
                               << "\t\t\t\t\t|_____|_____|_____|_____|_____|_____|_____|\n";
             std::cout << "\n\t\t\t\t\t ";
-            for (int i = 0; i < 7; i++)
-                std::cout << "  " << board_selector[i] << "  ";
+            for (int i = 0; i < BOARD_WIDTH; i++)
+                std::cout << "  " << board_selector[i] << "   ";
             std::cout << "\n\n";
         }
     private:
@@ -96,18 +103,70 @@ class Connect4{
         static void initGame(){
             clearBoard();
         }
+        static void gravitySim(int dropChoice){
+            for (int i = 0; i < BOARD_HEIGHT - 1; i++){
+                if(board[i+1][dropChoice] == 0){
+                    board[i+1][dropChoice] = board[i][dropChoice];
+                    board[i][dropChoice] = 0;
+                    Display::refresh(LOGO);
+                    Display::printBoard();
+                    sleep(1);
+                }
+                else break;
+            }
+        }
         static int checkWin(){
             // To be Implemented
+            return -1;
         }
     private:
         static void clearBoard() {
-            for (int i = 0; i < 6; i++)
-                for (int j = 0; j < 7; j++)
+            for (int i = 0; i < BOARD_HEIGHT; i++)
+                for (int j = 0; j < BOARD_WIDTH; j++)
                     board[i][j] = 0;
         }
 };
 
 void exitProgram(){exit(0);}
+
+class Navigation{
+    public:
+        static void MoveLeft(){
+            selector -= 1;
+            selector = selector <= 0 ? selector + BOARD_WIDTH : selector;
+            if (board_selector[selector - 1] == 'F')
+                MoveLeft();
+            else{
+                Navigation::removeSelector();
+                board_selector[selector - 1] = '^';
+                Display::refresh(LOGO);
+                Display::printBoard();
+            }
+        }
+        static void MoveRight(){
+            selector += 1;
+            selector = selector > BOARD_WIDTH ? selector - BOARD_WIDTH : selector;
+            if (board_selector[selector - 1] == 'F')
+                MoveRight();
+            else{
+                Navigation::removeSelector();
+                board_selector[selector - 1] = '^';
+                Display::refresh(LOGO);
+                Display::printBoard();
+            }
+        }
+        static void checkFullColumns(){
+            for (int i = 0; i < BOARD_WIDTH; i++)
+                if(board[0][i] != 0)
+                    board_selector[i] = 'F';
+        }
+    private:
+        static void removeSelector() {
+            for (int i = 0; i < BOARD_WIDTH; i++)
+                if (board_selector[i] == '^')
+                    board_selector[i] = ' ';
+        }
+};
 
 class Menus{
     public:
@@ -164,8 +223,58 @@ class Menus{
                 Menus::select(GAME);
                 break;
             case GAME:
+                selector = 0;
                 Display::refresh(LOGO);
                 Display::printBoard();
+                arrow = getch();
+                do{
+                    switch (arrow){
+                    case KEY_ESC:
+                        exitProgram();
+                    default:
+                        arrow = getch();
+                        switch (arrow){
+                            break;
+                        case KEY_LEFT:
+                            Navigation::MoveLeft();
+                            break;
+                        case KEY_RIGHT:
+                            Navigation::MoveRight();
+                            break;
+                        case KEY_ESC:
+                            exitProgram();
+                        default:
+                            break;
+                        }
+                        break;
+                    }
+                }while (arrow != KEY_ENTER);
+                switch (isEven(player)){
+                case 1:
+                    board[0][selector - 1] = 1;
+                    break;
+                case 2:
+                    board[0][selector - 1] = 2;
+                default:
+                    break;
+                }
+                Display::refresh(LOGO);
+                Display::printBoard();
+                Connect4::gravitySim(selector - 1);
+                Navigation::checkFullColumns();
+                switch (Connect4::checkWin()){
+                case GAME_STATE_ONGOING:
+                    player++;
+                    Menus::select(GAME);
+                    break;
+                case GAME_STATE_RESULT:
+                    Menus::select(WIN);
+                    break;
+                case GAME_STATE_DRAW:
+                    Menus::select(DRAW);
+                default:
+                    break;
+                }
                 break;
             default:
                 std::cout << "\nMissing Screen!\n";
