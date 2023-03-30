@@ -33,12 +33,13 @@
 
 #define BOARD_HEIGHT 6
 #define BOARD_WIDTH 7
+#define BOARD_SIZE 42
 
 #define HIGH_SCORE_FILE_ARRAY_SIZE 5
 #define HIGH_SCORE_FILE_NAME "high_scores.dat"
 #define HIGH_SCORE_FILE_DEFAULT "Yousef\nNicole\nOwen\nPenny\nMalika\n10\n9\n8\n7\n6\n"
 
-int board[BOARD_HEIGHT][BOARD_WIDTH] = {};
+int board[BOARD_SIZE] = {};
 char board_selector[BOARD_WIDTH] = {};
 char arrow;
 int selector, counter, player = 1;
@@ -147,12 +148,13 @@ class Display{
             clear();
             print(str);
         }
+
         static void printBoard(){
             std::cout << std::endl << player1->getName() << " (\u001b[31mO\u001b[36m) Score [" << player1->getScore() << "]  -  " << player2->getName() << " (\u001b[33mO\u001b[36m) Score [" << player2->getScore() << "]" << std::endl << std::endl
                       << "\t\t\t\t\t _________________________________________\n";
-            for (int i = 0; i < BOARD_HEIGHT; i++)
+            for (int i = 0; i < BOARD_SIZE; i += 7)
                     std::cout << "\t\t\t\t\t|     |     |     |     |     |     |     |\n"
-                              << "\t\t\t\t\t|  " << translateBoard(board[i][0]) << "  |  " << translateBoard(board[i][1]) << "  |  " << translateBoard(board[i][2]) << "  |  " << translateBoard(board[i][3]) << "  |  " << translateBoard(board[i][4]) << "  |  " << translateBoard(board[i][5]) << "  |  " << translateBoard(board[i][6]) << "  |\n"
+                              << "\t\t\t\t\t|  " << translateBoard(board[i]) << "  |  " << translateBoard(board[i+1]) << "  |  " << translateBoard(board[i+2]) << "  |  " << translateBoard(board[i+3]) << "  |  " << translateBoard(board[i+4]) << "  |  " << translateBoard(board[i+5]) << "  |  " << translateBoard(board[i+6]) << "  |\n"
                               << "\t\t\t\t\t|_____|_____|_____|_____|_____|_____|_____|\n";
             std::cout << "\n\t\t\t\t\t ";
             for (int i = 0; i < BOARD_WIDTH; i++)
@@ -192,261 +194,25 @@ class Connect4{
         static void initGame(){
             clearBoard();
         }
-        static void gravitySim(int dropChoice){
+        static void gravitySim(int *dropChoice){
             sleep(1);
-            for (int i = 0; i < BOARD_HEIGHT - 1; i++){
-                if(board[i+1][dropChoice] == 0){
-                    board[i+1][dropChoice] = board[i][dropChoice];
-                    board[i][dropChoice] = 0;
+            for (int i = 0; i < BOARD_HEIGHT - 1; i++)
+                if(*(dropChoice + BOARD_WIDTH) == 0){
+                    *(dropChoice + BOARD_WIDTH) = *dropChoice;
+                    *dropChoice = 0;
+                    dropChoice += BOARD_HEIGHT;
                     Display::refresh(LOGO);
                     Display::printBoard();
                     sleep(1);
-                }
-                else break;
-            }
+                }else break;
         }
-        static int checkWin(){        
-        // Horizontal Lines
-        for (int i = 0; i < 6; i++)
-            for (int j = 0; j < 4; j++)
-                if (((board[i][j] == 1) && (board[i][j+1] == 1)) && ((board[i][j+2] == 1) && (board[i][j+3] == 1)))
-                    return GAME_STATE_RESULT;
-        for (int i = 0; i < 6; i++)
-            for (int j = 0; j < 4; j++)
-                if (((board[i][j] == 2) && (board[i][j+1] == 2)) && ((board[i][j+2] == 2) && (board[i][j+3] == 2)))
-                    return GAME_STATE_RESULT;
-
-        // Vertical Lines
-        for (int i = 0; i < 7; i++)
-            for (int j = 0; j < 3; j++)
-                if (((board[j][i] == 1) && (board[j+1][i] == 1)) && ((board[j+2][i] == 1) && (board[j+3][i] == 1)))
-                    return GAME_STATE_RESULT;
-        for (int i = 0; i < 7; i++)
-            for (int j = 0; j < 3; j++)
-                if (((board[j][i] == 2) && (board[j+1][i] == 2)) && ((board[j+2][i] == 2) && (board[j+3][i] == 2)))
-                    return GAME_STATE_RESULT;
-
-        // 45 Diagonal Lines
-        for (int i = 0; i < 3; i++)
-            for (int j = 5; j >= 0; j--)
-                if (((board[i][j] == 1) && (board[i+1][j-1] == 1)) && ((board[i+1][j-1] == 1) && (board[i+1][j-1] == 1)))
-                    return GAME_STATE_RESULT;
-        for (int i = 0; i < 3; i++)
-            for (int j = 5; j >= 0; j--)
-                if (((board[i][j] == 2) && (board[i+1][j-1] == 2)) && ((board[i+1][j-1] == 2) && (board[i+1][j-1] == 2)))
-                    return GAME_STATE_RESULT;
-        // _______________
-        // | | | | | |O| |
-        // |_|_|_|_|_|_|_|
-        // | | | | |O| | |
-        // |_|_|_|_|_|_|_|
-        // | | | |O| | | |
-        // |_|_|_|_|_|_|_|
-        // | | |O| | | | |
-        // |_|_|_|_|_|_|_|
-        // | |O| | | | | |
-        // |_|_|_|_|_|_|_|
-        // |O| | | | | | |
-        // |_|_|_|_|_|_|_|
-
-        for (int i = 0; i < 3; i++)
-            for (int j = 6; j >= 1; j--)
-                if (((board[i][j] == 1) && (board[i+1][j-1] == 1)) && ((board[i+1][j-1] == 1) && (board[i+1][j-1] == 1)))
-                    return GAME_STATE_RESULT;
-        for (int i = 0; i < 3; i++)
-            for (int j = 6; j >= 1; j--)
-                if (((board[i][j] == 2) && (board[i+1][j-1] == 2)) && ((board[i+1][j-1] == 2) && (board[i+1][j-1] == 2)))
-                    return GAME_STATE_RESULT;
-        // _______________
-        // | | | | | | |O|
-        // |_|_|_|_|_|_|_|
-        // | | | | | |O| |
-        // |_|_|_|_|_|_|_|
-        // | | | | |O| | |
-        // |_|_|_|_|_|_|_|
-        // | | | |O| | | |
-        // |_|_|_|_|_|_|_|
-        // | | |O| | | | |
-        // |_|_|_|_|_|_|_|
-        // | |O| | | | | |
-        // |_|_|_|_|_|_|_|
-
-        for (int i = 0; i < 2; i++)
-            for (int j = 4; j >= 0; j--)
-                if (((board[i][j] == 1) && (board[i+1][j-1] == 1)) && ((board[i+1][j-1] == 1) && (board[i+1][j-1] == 1)))
-                    return GAME_STATE_RESULT;
-        for (int i = 0; i < 2; i++)
-            for (int j = 4; j >= 0; j--)
-                if (((board[i][j] == 2) && (board[i+1][j-1] == 2)) && ((board[i+1][j-1] == 2) && (board[i+1][j-1] == 2)))
-                    return GAME_STATE_RESULT;
-        // _______________
-        // | | | | |O| | |
-        // |_|_|_|_|_|_|_|
-        // | | | |O| | | |
-        // |_|_|_|_|_|_|_|
-        // | | |O| | | | |
-        // |_|_|_|_|_|_|_|
-        // | |O| | | | | |
-        // |_|_|_|_|_|_|_|
-        // |O| | | | | | |
-        // |_|_|_|_|_|_|_|
-        // | | | | | | | |
-        // |_|_|_|_|_|_|_|
-
-        for (int i = 1; i < 3; i++)
-            for (int j = 6; j >= 2; j--)
-                if (((board[i][j] == 1) && (board[i+1][j-1] == 1)) && ((board[i+1][j-1] == 1) && (board[i+1][j-1] == 1)))
-                    return GAME_STATE_RESULT;
-        for (int i = 1; i < 3; i++)
-            for (int j = 6; j >= 2; j--)
-                if (((board[i][j] == 2) && (board[i+1][j-1] == 2)) && ((board[i+1][j-1] == 2) && (board[i+1][j-1] == 2)))
-                    return GAME_STATE_RESULT;
-        // _______________
-        // | | | | | | | |
-        // |_|_|_|_|_|_|_|
-        // | | | | | | |O|
-        // |_|_|_|_|_|_|_|
-        // | | | | | |O| |
-        // |_|_|_|_|_|_|_|
-        // | | | | |O| | |
-        // |_|_|_|_|_|_|_|
-        // | | | |O| | | |
-        // |_|_|_|_|_|_|_|
-        // | | |O| | | | |
-        // |_|_|_|_|_|_|_|
-
-        if (((board[0][3] == 1) && (board[1][2] == 1)) && ((board[2][1] == 1) && (board[3][0] == 1)))
-            return GAME_STATE_RESULT;
-        if (((board[0][3] == 2) && (board[1][2] == 2)) && ((board[2][1] == 2) && (board[3][0] == 2)))
-            return GAME_STATE_RESULT;
-        if (((board[2][6] == 1) && (board[3][5] == 1)) && ((board[4][4] == 1) && (board[5][3] == 1)))
-            return GAME_STATE_RESULT;
-        if (((board[2][6] == 2) && (board[3][5] == 2)) && ((board[4][4] == 2) && (board[5][3] == 2)))
-            return GAME_STATE_RESULT;
-        // _______________
-        // | | | |O| | | |
-        // |_|_|_|_|_|_|_|
-        // | | |O| | | | |
-        // |_|_|_|_|_|_|_|
-        // | |O| | | | |O|
-        // |_|_|_|_|_|_|_|
-        // |O| | | | |O| |
-        // |_|_|_|_|_|_|_|
-        // | | | | |O| | |
-        // |_|_|_|_|_|_|_|
-        // | | | |O| | | |
-        // |_|_|_|_|_|_|_|
-
-        // 135 Diagonal Lines
-        for (int i = 0; i < 3; i++)
-            if (((board[i][i] == 1) && (board[i+1][i+1] == 1)) && ((board[i+2][i+2] == 1) && (board[i+3][i+3] == 1)))
-                return GAME_STATE_RESULT;
-        for (int i = 0; i < 3; i++)
-            if (((board[i][i] == 2) && (board[i+1][i+1] == 2)) && ((board[i+2][i+2] == 2) && (board[i+3][i+3] == 2)))
-                return GAME_STATE_RESULT;
-        // _______________
-        // |O| | | | | | |
-        // |_|_|_|_|_|_|_|
-        // | |O| | | | | |
-        // |_|_|_|_|_|_|_|
-        // | | |O| | | | |
-        // |_|_|_|_|_|_|_|
-        // | | | |O| | | |
-        // |_|_|_|_|_|_|_|
-        // | | | | |O| | |
-        // |_|_|_|_|_|_|_|
-        // | | | | | |O| |
-        // |_|_|_|_|_|_|_|
-
-        for (int i = 0; i < 3; i++)
-            if (((board[i][i+1] == 1) && (board[i+1][i+2] == 1)) && ((board[i+2][i+3] == 1) && (board[i+3][i+4] == 1)))
-                return GAME_STATE_RESULT;
-        for (int i = 0; i < 3; i++)
-            if (((board[i][i+1] == 2) && (board[i+1][i+2] == 2)) && ((board[i+2][i+3] == 2) && (board[i+3][i+4] == 2)))
-                return GAME_STATE_RESULT;
-        // _______________
-        // | |O| | | | | |
-        // |_|_|_|_|_|_|_|
-        // | | |O| | | | |
-        // |_|_|_|_|_|_|_|
-        // | | | |O| | | |
-        // |_|_|_|_|_|_|_|
-        // | | | | |O| | |
-        // |_|_|_|_|_|_|_|
-        // | | | | | |O| |
-        // |_|_|_|_|_|_|_|
-        // | | | | | | |O|
-        // |_|_|_|_|_|_|_|
-
-        for (int i = 0; i < 2; i++)
-            if (((board[i][i+2] == 1) && (board[i+1][i+3] == 1)) && ((board[i+2][i+4] == 1) && (board[i+3][i+5] == 1)))
-                return GAME_STATE_RESULT;
-        for (int i = 0; i < 2; i++)
-            if (((board[i][i+2] == 2) && (board[i+1][i+3] == 2)) && ((board[i+2][i+4] == 2) && (board[i+3][i+5] == 2)))
-                return GAME_STATE_RESULT;
-        // _______________
-        // | | |O| | | | |
-        // |_|_|_|_|_|_|_|
-        // | | | |O| | | |
-        // |_|_|_|_|_|_|_|
-        // | | | | |O| | |
-        // |_|_|_|_|_|_|_|
-        // | | | | | |O| |
-        // |_|_|_|_|_|_|_|
-        // | | | | | | |O|
-        // |_|_|_|_|_|_|_|
-        // | | | | | | | |
-        // |_|_|_|_|_|_|_|
-
-        for (int i = 0; i < 2; i++)
-            if (((board[i+1][i] == 1) && (board[i+2][i+1] == 1)) && ((board[i+3][i+2] == 1) && (board[i+4][i+3] == 1)))
-                return GAME_STATE_RESULT;
-        for (int i = 0; i < 2; i++)
-            if (((board[i+1][i] == 2) && (board[i+2][i+1] == 2)) && ((board[i+3][i+2] == 2) && (board[i+4][i+3] == 2)))
-                return GAME_STATE_RESULT;
-        // _______________
-        // | | | | | | | |
-        // |_|_|_|_|_|_|_|
-        // |O| | | | | | |
-        // |_|_|_|_|_|_|_|
-        // | |O| | | | | |
-        // |_|_|_|_|_|_|_|
-        // | | |O| | | | |
-        // |_|_|_|_|_|_|_|
-        // | | | |O| | | |
-        // |_|_|_|_|_|_|_|
-        // | | | | |O| | |
-        // |_|_|_|_|_|_|_|
-        
-        if (((board[2][0] == 1) && (board[3][1] == 1)) && ((board[4][2] == 1) && (board[5][3] == 1)))
-            return GAME_STATE_RESULT;
-        if (((board[2][0] == 2) && (board[3][1] == 2)) && ((board[4][2] == 2) && (board[5][3] == 2)))
-            return GAME_STATE_RESULT;
-        if (((board[0][3] == 1) && (board[1][4] == 1)) && ((board[2][5] == 1) && (board[3][6] == 1)))
-            return GAME_STATE_RESULT;
-        if (((board[0][3] == 2) && (board[1][4] == 2)) && ((board[2][5] == 2) && (board[3][6] == 2)))
-            return GAME_STATE_RESULT;
-        // _______________
-        // | | | |O| | | |
-        // |_|_|_|_|_|_|_|
-        // | | | | |O| | |
-        // |_|_|_|_|_|_|_|
-        // |O| | | | |O| |
-        // |_|_|_|_|_|_|_|
-        // | |O| | | | |O|
-        // |_|_|_|_|_|_|_|
-        // | | |O| | | | |
-        // |_|_|_|_|_|_|_|
-        // | | | |O| | | |
-        // |_|_|_|_|_|_|_|
-        
-        return GAME_STATE_ONGOING;
+        static int checkWin(){
+            return -1;
         }
     private:
         static void clearBoard() {
-            for (int i = 0; i < BOARD_HEIGHT; i++)
-                for (int j = 0; j < BOARD_WIDTH; j++)
-                    board[i][j] = 0;
+            for (int i = 0; i < BOARD_SIZE; i++)
+                board[i] = 0;
         }
 };
 
@@ -483,7 +249,7 @@ class Navigation{
         }
         static void checkFullColumns(){
             for (int i = 0; i < BOARD_WIDTH; i++)
-                if(board[0][i] != 0)
+                if(board[i] != 0)
                     board_selector[i] = 'F';
         }
     private:
@@ -577,16 +343,16 @@ class Menus{
                 }while (arrow != KEY_ENTER);
                 switch (isEven(player)){
                 case 1:
-                    board[0][selector - 1] = 1;
+                    board[selector - 1] = 1;
                     break;
                 case 2:
-                    board[0][selector - 1] = 2;
+                    board[selector - 1] = 2;
                 default:
                     break;
                 }
                 Display::refresh(LOGO);
                 Display::printBoard();
-                Connect4::gravitySim(selector - 1);
+                Connect4::gravitySim(&board[selector - 1]);
                 Navigation::checkFullColumns();
                 switch (Connect4::checkWin()){
                 case GAME_STATE_ONGOING:
