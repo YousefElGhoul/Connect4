@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <unistd.h>
 #include <conio.h>
 
@@ -33,6 +34,10 @@
 #define BOARD_HEIGHT 6
 #define BOARD_WIDTH 7
 
+#define HIGH_SCORE_FILE_ARRAY_SIZE 5
+#define HIGH_SCORE_FILE_NAME "high_scores.dat"
+#define HIGH_SCORE_FILE_DEFAULT "Yousef\nNicole\nOwen\nPenny\nMalika\n10\n9\n8\n7\n6\n"
+
 int board[BOARD_HEIGHT][BOARD_WIDTH] = {};
 char board_selector[BOARD_WIDTH] = {};
 char arrow;
@@ -63,6 +68,74 @@ int isEven(int x){return x % 2 == 0 ? 2 : 1;}
 std::string getName(int player){return isEven(player) == 1 ? player1->getName() : player2->getName();}
 
 
+PlayerData High_Scores[HIGH_SCORE_FILE_ARRAY_SIZE] = {*empty, *empty, *empty, *empty, *empty};
+
+class Scores{
+    public:
+        static void checkFile(){
+            std::fstream file;
+            file.open(HIGH_SCORE_FILE_NAME);
+            if(!file){
+                file.open(HIGH_SCORE_FILE_NAME, std::ios::out);
+                if(file.is_open()){
+                    file << HIGH_SCORE_FILE_DEFAULT;
+                    file.close();
+                }
+            }
+            file.close();
+        }
+        static void readHighScores(){
+            std::fstream file;
+            file.open(HIGH_SCORE_FILE_NAME, std::ios::in);
+            if(file.is_open()){
+                for (int i = 0; i < HIGH_SCORE_FILE_ARRAY_SIZE; i++){
+                    getline(file, lineInput);
+                    High_Scores[i].setName(lineInput);
+                }
+                for (int i = 0; i < HIGH_SCORE_FILE_ARRAY_SIZE; i++){
+                    getline(file, lineInput);
+                    High_Scores[i].setScore(stoi(lineInput));
+                }
+                file.close();
+                sortData();
+            }
+        }
+        static void saveHighScores(){
+            std::fstream file;
+            file.open(HIGH_SCORE_FILE_NAME, std::ios::out);
+            if(file.is_open()){
+                for (int i = 0; i < HIGH_SCORE_FILE_ARRAY_SIZE; i++)
+                    file << High_Scores[i].getName() << "\n";
+                for (int i = 0; i < HIGH_SCORE_FILE_ARRAY_SIZE; i++)
+                    file << High_Scores[i].getScore() << "\n";
+                file.close();
+            }
+        }
+        static void refreshHighScores(){
+            addScore(*player1);
+            addScore(*player2);
+            saveHighScores();
+        }
+    private:
+        static void swapData(PlayerData* xp, PlayerData* yp){
+            PlayerData temp = *xp;
+            *xp = *yp;
+            *yp = temp;
+        }
+        static void sortData(){
+            for (int i = 0; i < HIGH_SCORE_FILE_ARRAY_SIZE - 1; i++)
+                for (int j = 0; j < HIGH_SCORE_FILE_ARRAY_SIZE - i - 1; j++)
+                    if(High_Scores[j].getScore() < High_Scores[j+1].getScore())
+                        swapData(&High_Scores[j], &High_Scores[j+1]);
+        }
+        static void addScore(PlayerData pd){
+            if(pd.getScore() > High_Scores[HIGH_SCORE_FILE_ARRAY_SIZE - 1].getScore()){
+                High_Scores[HIGH_SCORE_FILE_ARRAY_SIZE - 1] = pd;
+                sortData();
+            }
+        }
+};
+
 class Display{
     public:
         static void initDisplay(){
@@ -86,6 +159,18 @@ class Display{
                 std::cout << "  " << board_selector[i] << "   ";
             std::cout << "\n\n";
         }
+        static void printScores(){
+            Scores::refreshHighScores();
+            refresh(LOGO);
+            for (int i = 0; i < HIGH_SCORE_FILE_ARRAY_SIZE; i++){
+                std::cout << "\t\t\t\t\t  " << "                |"  << std::endl 
+                     << "\t\t\t\t\t  " << "    " <<  High_Scores[i].getName() << "\t  |       " << High_Scores[i].getScore() <<  std::endl;
+                if(i != HIGH_SCORE_FILE_ARRAY_SIZE - 1)
+                    std::cout << "\t\t\t\t\t  " << "________________|________________"  <<  std::endl;
+                else std::cout << "\t\t\t\t\t  " << "                |" <<  std::endl;
+            }
+            system("pause");
+        }
     private:
         static void clear(){system("CLS");}
         static void print(std::string str){std::cout << std::endl << "\u001b[36m" << str;}
@@ -108,6 +193,7 @@ class Connect4{
             clearBoard();
         }
         static void gravitySim(int dropChoice){
+            sleep(1);
             for (int i = 0; i < BOARD_HEIGHT - 1; i++){
                 if(board[i+1][dropChoice] == 0){
                     board[i+1][dropChoice] = board[i][dropChoice];
@@ -119,65 +205,242 @@ class Connect4{
                 else break;
             }
         }
-        static int checkWin(){
-            for (int i = 0; i < BOARD_HEIGHT - 4; i++)
-                for (int j = 0; j < BOARD_WIDTH - 4; j++){
-                    if (board[i+0][j+0] == 1 &&
-                        board[i+0][j+1] == 1 &&
-                        board[i+0][j+2] == 1 &&
-                        board[i+0][j+3] == 1)
-                        return GAME_STATE_RESULT;
-                    else
-                    if (board[i+0][j+0] == 1 &&
-                        board[i+1][j+0] == 1 &&
-                        board[i+2][j+0] == 1 &&
-                        board[i+3][j+0] == 1)
-                        return GAME_STATE_RESULT;
-                    else
-                    if (board[i+0][j+0] == 1 &&
-                        board[i+1][j+1] == 1 &&
-                        board[i+2][j+2] == 1 &&
-                        board[i+3][j+3] == 1)
-                        return GAME_STATE_RESULT;
-                    else
-                    if (board[i+3][j+0] == 1 &&
-                        board[i+2][j+0] == 1 &&
-                        board[i+1][j+0] == 1 &&
-                        board[i+0][j+0] == 1)
-                        return GAME_STATE_RESULT;
-                    else
-                        
-                    if (board[i+0][j+0] == 2 &&
-                        board[i+0][j+1] == 2 &&
-                        board[i+0][j+2] == 2 &&
-                        board[i+0][j+3] == 2)
-                        return GAME_STATE_RESULT;
-                    else
-                    if (board[i+0][j+0] == 2 &&
-                        board[i+1][j+0] == 2 &&
-                        board[i+2][j+0] == 2 &&
-                        board[i+3][j+0] == 2)
-                        return GAME_STATE_RESULT;
-                    else
-                    if (board[i+0][j+0] == 2 &&
-                        board[i+1][j+1] == 2 &&
-                        board[i+2][j+2] == 2 &&
-                        board[i+3][j+3] == 2)
-                        return GAME_STATE_RESULT;
-                    else
-                    if (board[i+3][j+0] == 2 &&
-                        board[i+2][j+0] == 2 &&
-                        board[i+1][j+0] == 2 &&
-                        board[i+0][j+0] == 2)
-                        return GAME_STATE_RESULT;
-                }
-            for (int i = 0; i < BOARD_HEIGHT; i++)
-                for (int j = 0; j < BOARD_WIDTH; j++)
-                    if(board[i][j] != 0)
-                        counter++;
-            if(counter == 42)
-                return GAME_STATE_DRAW;
-            return GAME_STATE_ONGOING;
+        static int checkWin(){        
+        // Horizontal Lines
+        for (int i = 0; i < 6; i++)
+            for (int j = 0; j < 4; j++)
+                if (((board[i][j] == 1) && (board[i][j+1] == 1)) && ((board[i][j+2] == 1) && (board[i][j+3] == 1)))
+                    return GAME_STATE_RESULT;
+        for (int i = 0; i < 6; i++)
+            for (int j = 0; j < 4; j++)
+                if (((board[i][j] == 2) && (board[i][j+1] == 2)) && ((board[i][j+2] == 2) && (board[i][j+3] == 2)))
+                    return GAME_STATE_RESULT;
+
+        // Vertical Lines
+        for (int i = 0; i < 7; i++)
+            for (int j = 0; j < 3; j++)
+                if (((board[j][i] == 1) && (board[j+1][i] == 1)) && ((board[j+2][i] == 1) && (board[j+3][i] == 1)))
+                    return GAME_STATE_RESULT;
+        for (int i = 0; i < 7; i++)
+            for (int j = 0; j < 3; j++)
+                if (((board[j][i] == 2) && (board[j+1][i] == 2)) && ((board[j+2][i] == 2) && (board[j+3][i] == 2)))
+                    return GAME_STATE_RESULT;
+
+        // 45 Diagonal Lines
+        for (int i = 0; i < 3; i++)
+            for (int j = 5; j >= 0; j--)
+                if (((board[i][j] == 1) && (board[i+1][j-1] == 1)) && ((board[i+1][j-1] == 1) && (board[i+1][j-1] == 1)))
+                    return GAME_STATE_RESULT;
+        for (int i = 0; i < 3; i++)
+            for (int j = 5; j >= 0; j--)
+                if (((board[i][j] == 2) && (board[i+1][j-1] == 2)) && ((board[i+1][j-1] == 2) && (board[i+1][j-1] == 2)))
+                    return GAME_STATE_RESULT;
+        // _______________
+        // | | | | | |O| |
+        // |_|_|_|_|_|_|_|
+        // | | | | |O| | |
+        // |_|_|_|_|_|_|_|
+        // | | | |O| | | |
+        // |_|_|_|_|_|_|_|
+        // | | |O| | | | |
+        // |_|_|_|_|_|_|_|
+        // | |O| | | | | |
+        // |_|_|_|_|_|_|_|
+        // |O| | | | | | |
+        // |_|_|_|_|_|_|_|
+
+        for (int i = 0; i < 3; i++)
+            for (int j = 6; j >= 1; j--)
+                if (((board[i][j] == 1) && (board[i+1][j-1] == 1)) && ((board[i+1][j-1] == 1) && (board[i+1][j-1] == 1)))
+                    return GAME_STATE_RESULT;
+        for (int i = 0; i < 3; i++)
+            for (int j = 6; j >= 1; j--)
+                if (((board[i][j] == 2) && (board[i+1][j-1] == 2)) && ((board[i+1][j-1] == 2) && (board[i+1][j-1] == 2)))
+                    return GAME_STATE_RESULT;
+        // _______________
+        // | | | | | | |O|
+        // |_|_|_|_|_|_|_|
+        // | | | | | |O| |
+        // |_|_|_|_|_|_|_|
+        // | | | | |O| | |
+        // |_|_|_|_|_|_|_|
+        // | | | |O| | | |
+        // |_|_|_|_|_|_|_|
+        // | | |O| | | | |
+        // |_|_|_|_|_|_|_|
+        // | |O| | | | | |
+        // |_|_|_|_|_|_|_|
+
+        for (int i = 0; i < 2; i++)
+            for (int j = 4; j >= 0; j--)
+                if (((board[i][j] == 1) && (board[i+1][j-1] == 1)) && ((board[i+1][j-1] == 1) && (board[i+1][j-1] == 1)))
+                    return GAME_STATE_RESULT;
+        for (int i = 0; i < 2; i++)
+            for (int j = 4; j >= 0; j--)
+                if (((board[i][j] == 2) && (board[i+1][j-1] == 2)) && ((board[i+1][j-1] == 2) && (board[i+1][j-1] == 2)))
+                    return GAME_STATE_RESULT;
+        // _______________
+        // | | | | |O| | |
+        // |_|_|_|_|_|_|_|
+        // | | | |O| | | |
+        // |_|_|_|_|_|_|_|
+        // | | |O| | | | |
+        // |_|_|_|_|_|_|_|
+        // | |O| | | | | |
+        // |_|_|_|_|_|_|_|
+        // |O| | | | | | |
+        // |_|_|_|_|_|_|_|
+        // | | | | | | | |
+        // |_|_|_|_|_|_|_|
+
+        for (int i = 1; i < 3; i++)
+            for (int j = 6; j >= 2; j--)
+                if (((board[i][j] == 1) && (board[i+1][j-1] == 1)) && ((board[i+1][j-1] == 1) && (board[i+1][j-1] == 1)))
+                    return GAME_STATE_RESULT;
+        for (int i = 1; i < 3; i++)
+            for (int j = 6; j >= 2; j--)
+                if (((board[i][j] == 2) && (board[i+1][j-1] == 2)) && ((board[i+1][j-1] == 2) && (board[i+1][j-1] == 2)))
+                    return GAME_STATE_RESULT;
+        // _______________
+        // | | | | | | | |
+        // |_|_|_|_|_|_|_|
+        // | | | | | | |O|
+        // |_|_|_|_|_|_|_|
+        // | | | | | |O| |
+        // |_|_|_|_|_|_|_|
+        // | | | | |O| | |
+        // |_|_|_|_|_|_|_|
+        // | | | |O| | | |
+        // |_|_|_|_|_|_|_|
+        // | | |O| | | | |
+        // |_|_|_|_|_|_|_|
+
+        if (((board[0][3] == 1) && (board[1][2] == 1)) && ((board[2][1] == 1) && (board[3][0] == 1)))
+            return GAME_STATE_RESULT;
+        if (((board[0][3] == 2) && (board[1][2] == 2)) && ((board[2][1] == 2) && (board[3][0] == 2)))
+            return GAME_STATE_RESULT;
+        if (((board[2][6] == 1) && (board[3][5] == 1)) && ((board[4][4] == 1) && (board[5][3] == 1)))
+            return GAME_STATE_RESULT;
+        if (((board[2][6] == 2) && (board[3][5] == 2)) && ((board[4][4] == 2) && (board[5][3] == 2)))
+            return GAME_STATE_RESULT;
+        // _______________
+        // | | | |O| | | |
+        // |_|_|_|_|_|_|_|
+        // | | |O| | | | |
+        // |_|_|_|_|_|_|_|
+        // | |O| | | | |O|
+        // |_|_|_|_|_|_|_|
+        // |O| | | | |O| |
+        // |_|_|_|_|_|_|_|
+        // | | | | |O| | |
+        // |_|_|_|_|_|_|_|
+        // | | | |O| | | |
+        // |_|_|_|_|_|_|_|
+
+        // 135 Diagonal Lines
+        for (int i = 0; i < 3; i++)
+            if (((board[i][i] == 1) && (board[i+1][i+1] == 1)) && ((board[i+2][i+2] == 1) && (board[i+3][i+3] == 1)))
+                return GAME_STATE_RESULT;
+        for (int i = 0; i < 3; i++)
+            if (((board[i][i] == 2) && (board[i+1][i+1] == 2)) && ((board[i+2][i+2] == 2) && (board[i+3][i+3] == 2)))
+                return GAME_STATE_RESULT;
+        // _______________
+        // |O| | | | | | |
+        // |_|_|_|_|_|_|_|
+        // | |O| | | | | |
+        // |_|_|_|_|_|_|_|
+        // | | |O| | | | |
+        // |_|_|_|_|_|_|_|
+        // | | | |O| | | |
+        // |_|_|_|_|_|_|_|
+        // | | | | |O| | |
+        // |_|_|_|_|_|_|_|
+        // | | | | | |O| |
+        // |_|_|_|_|_|_|_|
+
+        for (int i = 0; i < 3; i++)
+            if (((board[i][i+1] == 1) && (board[i+1][i+2] == 1)) && ((board[i+2][i+3] == 1) && (board[i+3][i+4] == 1)))
+                return GAME_STATE_RESULT;
+        for (int i = 0; i < 3; i++)
+            if (((board[i][i+1] == 2) && (board[i+1][i+2] == 2)) && ((board[i+2][i+3] == 2) && (board[i+3][i+4] == 2)))
+                return GAME_STATE_RESULT;
+        // _______________
+        // | |O| | | | | |
+        // |_|_|_|_|_|_|_|
+        // | | |O| | | | |
+        // |_|_|_|_|_|_|_|
+        // | | | |O| | | |
+        // |_|_|_|_|_|_|_|
+        // | | | | |O| | |
+        // |_|_|_|_|_|_|_|
+        // | | | | | |O| |
+        // |_|_|_|_|_|_|_|
+        // | | | | | | |O|
+        // |_|_|_|_|_|_|_|
+
+        for (int i = 0; i < 2; i++)
+            if (((board[i][i+2] == 1) && (board[i+1][i+3] == 1)) && ((board[i+2][i+4] == 1) && (board[i+3][i+5] == 1)))
+                return GAME_STATE_RESULT;
+        for (int i = 0; i < 2; i++)
+            if (((board[i][i+2] == 2) && (board[i+1][i+3] == 2)) && ((board[i+2][i+4] == 2) && (board[i+3][i+5] == 2)))
+                return GAME_STATE_RESULT;
+        // _______________
+        // | | |O| | | | |
+        // |_|_|_|_|_|_|_|
+        // | | | |O| | | |
+        // |_|_|_|_|_|_|_|
+        // | | | | |O| | |
+        // |_|_|_|_|_|_|_|
+        // | | | | | |O| |
+        // |_|_|_|_|_|_|_|
+        // | | | | | | |O|
+        // |_|_|_|_|_|_|_|
+        // | | | | | | | |
+        // |_|_|_|_|_|_|_|
+
+        for (int i = 0; i < 2; i++)
+            if (((board[i+1][i] == 1) && (board[i+2][i+1] == 1)) && ((board[i+3][i+2] == 1) && (board[i+4][i+3] == 1)))
+                return GAME_STATE_RESULT;
+        for (int i = 0; i < 2; i++)
+            if (((board[i+1][i] == 2) && (board[i+2][i+1] == 2)) && ((board[i+3][i+2] == 2) && (board[i+4][i+3] == 2)))
+                return GAME_STATE_RESULT;
+        // _______________
+        // | | | | | | | |
+        // |_|_|_|_|_|_|_|
+        // |O| | | | | | |
+        // |_|_|_|_|_|_|_|
+        // | |O| | | | | |
+        // |_|_|_|_|_|_|_|
+        // | | |O| | | | |
+        // |_|_|_|_|_|_|_|
+        // | | | |O| | | |
+        // |_|_|_|_|_|_|_|
+        // | | | | |O| | |
+        // |_|_|_|_|_|_|_|
+        
+        if (((board[2][0] == 1) && (board[3][1] == 1)) && ((board[4][2] == 1) && (board[5][3] == 1)))
+            return GAME_STATE_RESULT;
+        if (((board[2][0] == 2) && (board[3][1] == 2)) && ((board[4][2] == 2) && (board[5][3] == 2)))
+            return GAME_STATE_RESULT;
+        if (((board[0][3] == 1) && (board[1][4] == 1)) && ((board[2][5] == 1) && (board[3][6] == 1)))
+            return GAME_STATE_RESULT;
+        if (((board[0][3] == 2) && (board[1][4] == 2)) && ((board[2][5] == 2) && (board[3][6] == 2)))
+            return GAME_STATE_RESULT;
+        // _______________
+        // | | | |O| | | |
+        // |_|_|_|_|_|_|_|
+        // | | | | |O| | |
+        // |_|_|_|_|_|_|_|
+        // |O| | | | |O| |
+        // |_|_|_|_|_|_|_|
+        // | |O| | | | |O|
+        // |_|_|_|_|_|_|_|
+        // | | |O| | | | |
+        // |_|_|_|_|_|_|_|
+        // | | | |O| | | |
+        // |_|_|_|_|_|_|_|
+        
+        return GAME_STATE_ONGOING;
         }
     private:
         static void clearBoard() {
@@ -187,7 +450,10 @@ class Connect4{
         }
 };
 
-void exitProgram(){exit(0);}
+void exitProgram(){
+    Scores::saveHighScores();
+    exit(0);
+}
 
 class Navigation{
     public:
@@ -260,6 +526,7 @@ class Menus{
                 }while (arrow != KEY_ENTER);
                 switch (selector){
                 case 'S':
+                    selector = 0;
                     Menus::select(NAME);
                     break;
                 case 'E':
@@ -283,7 +550,6 @@ class Menus{
                 Menus::select(GAME);
                 break;
             case GAME:
-                selector = 0;
                 Display::refresh(LOGO);
                 Display::printBoard();
                 arrow = getch();
@@ -337,7 +603,7 @@ class Menus{
                 }
                 break;
             case WIN:
-                std::cout << "\t\t\t\t\t\t" << getName(player) << " Wins!\n";
+                std::cout << "\t\t\t\t\t\t    " << getName(player) << " Wins!\n";
                 switch (isEven(player)){
                 case 1:
                     player1->incScore();
@@ -392,6 +658,11 @@ class Menus{
                     break;
                 }
                 break;
+            case HIGH_SCORES:
+                Display::refresh(LOGO);
+                Display::printScores();
+                exitProgram();
+                break;
             default:
                 std::cout << "\nMissing Screen!\n";
                 sleep(1);
@@ -401,6 +672,8 @@ class Menus{
 };
 
 void initProgram(){
+    Scores::checkFile();
+    Scores::readHighScores();
     Display::initDisplay();
     Connect4::initGame();
     Menus::select(START);
