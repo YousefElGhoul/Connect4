@@ -196,77 +196,66 @@ class Connect4{
         }
         static void gravitySim(int *dropChoice){
             sleep(1);
-            for (int i = 0; i < BOARD_HEIGHT - 1; i++)
-                if(*(dropChoice + BOARD_WIDTH) == 0){
-                    *(dropChoice + BOARD_WIDTH) = *dropChoice;
-                    *dropChoice = 0;
-                    dropChoice += BOARD_HEIGHT;
-                    Display::refresh(LOGO);
-                    Display::printBoard();
-                    sleep(1);
-                }else break;
+            if(*(dropChoice + BOARD_WIDTH) == 0){
+                *(dropChoice + BOARD_WIDTH) = *dropChoice;
+                *dropChoice = 0;
+                Display::refresh(LOGO);
+                Display::printBoard();
+                gravitySim(dropChoice + BOARD_WIDTH);
+            }else return;
         }
         static int checkWin(){
-            for (int offset = 0; offset < ((BOARD_HEIGHT - 4) * BOARD_WIDTH) + 1; offset += BOARD_WIDTH)
-                for (int anchor = offset; anchor < (BOARD_WIDTH - 4) + offset + 1; anchor++){
-                    if(board[anchor] == board[anchor + 1] &&
-                       board[anchor + 1] == board[anchor + 2] &&
-                       board[anchor + 2] == board[anchor + 3] &&
-                       board[anchor + 3] == 1)
-                        return GAME_STATE_RESULT;
-                    else
-                    if(board[anchor] == board[anchor + 1] &&
-                       board[anchor + 1] == board[anchor + 2] &&
-                       board[anchor + 2] == board[anchor + 3] &&
-                       board[anchor + 3] == 2)
-                        return GAME_STATE_RESULT;
-                    else
-                        
-                    if(board[anchor] == board[anchor + 7] &&
-                       board[anchor + 7] == board[anchor + 14] &&
-                       board[anchor + 14] == board[anchor + 21] &&
-                       board[anchor + 21] == 1)
-                        return GAME_STATE_RESULT;
-                    else
-                    if(board[anchor] == board[anchor + 7] &&
-                       board[anchor + 7] == board[anchor + 14] &&
-                       board[anchor + 14] == board[anchor + 21] &&
-                       board[anchor + 21] == 2)
-                        return GAME_STATE_RESULT;
-                    else
 
-                    if(board[anchor] == board[anchor + 8] &&
-                       board[anchor + 8] == board[anchor + 16] &&
-                       board[anchor + 16] == board[anchor + 24] &&
-                       board[anchor + 24] == 1)
+            // Horizontal Lines
+
+            for (int offset = 0; offset < BOARD_SIZE; offset += BOARD_WIDTH)
+                for (int anchor = offset; anchor <= (BOARD_WIDTH - 4) + offset; anchor++){
+                    if(board[anchor] == board[anchor + 1] &&
+                       board[anchor + 1] == board[anchor + 2] &&
+                       board[anchor + 2] == board[anchor + 3] &&
+                       board[anchor + 3] != 0)
                         return GAME_STATE_RESULT;
-                    else
+                }
+
+            // Vertical Lines
+
+            for (int offset = 0; offset <= (BOARD_HEIGHT - 4) * BOARD_WIDTH; offset += BOARD_WIDTH)
+                for (int anchor = offset; anchor < BOARD_WIDTH + offset; anchor++){
+                    if(board[anchor] == board[anchor + 7] &&
+                       board[anchor + 7] == board[anchor + 14] &&
+                       board[anchor + 14] == board[anchor + 21] &&
+                       board[anchor + 21] != 0)
+                        return GAME_STATE_RESULT;
+                }
+
+            // Diagonal Lines
+
+            for (int offset = 0; offset <= (BOARD_HEIGHT - 4) * BOARD_WIDTH; offset += BOARD_WIDTH)
+                for (int anchor = offset; anchor <= (BOARD_WIDTH - 4) + offset; anchor++){
                     if(board[anchor] == board[anchor + 8] &&
                        board[anchor + 8] == board[anchor + 16] &&
                        board[anchor + 16] == board[anchor + 24] &&
-                       board[anchor + 24] == 2)
+                       board[anchor + 24] != 0)
                         return GAME_STATE_RESULT;
                     else
                     
                     if(board[anchor + 3] == board[anchor + 9] &&
                        board[anchor + 9] == board[anchor + 15] &&
                        board[anchor + 15] == board[anchor + 21] &&
-                       board[anchor + 21] == 1)
-                        return GAME_STATE_RESULT;
-                    else
-                    if(board[anchor + 3] == board[anchor + 9] &&
-                       board[anchor + 9] == board[anchor + 15] &&
-                       board[anchor + 15] == board[anchor + 21] &&
-                       board[anchor + 21] == 2)
+                       board[anchor + 21] != 0)
                         return GAME_STATE_RESULT;
                 }
                 
+            // Draw Condition
+
             for (int i = 0; i < BOARD_SIZE; i++)
                 if(board[i] != 0)
                     counter++;
             if(counter == BOARD_SIZE)
                 return GAME_STATE_DRAW;
                 
+            // If no player has won and the draw condition isn't fulfilled
+            
             return GAME_STATE_ONGOING;
         }
     private:
