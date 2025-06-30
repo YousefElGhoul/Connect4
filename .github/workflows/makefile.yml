@@ -1,0 +1,43 @@
+name: Build with MSYS2 (ucrt64)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}  # Run all commands in MSYS2 environment
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: UCRT64
+        release: true
+        update: true
+        install: >-
+          base-devel
+          git
+          make
+          mingw-w64-ucrt-x86_64-gcc
+
+    - name: Print g++ version
+      run: g++ --version
+
+    - name: Clean previous build
+      run: make clean
+
+    - name: Build project
+      run: make
+
+    - name: Upload executable
+      uses: actions/upload-artifact@v4
+      with:
+        name: TicTacToe
+        path: output/*.exe
