@@ -1,6 +1,7 @@
 #ifndef MENUS_HPP
 #define MENUS_HPP
 
+#include <cstdlib>
 #include "Display.hpp"
 #include "Navigation.hpp"
 #include "Connect4.hpp"

@@ -2,6 +2,7 @@
 
 PlayerData *empty = new PlayerData("", 0);
 PlayerData High_Scores[HIGH_SCORE_FILE_ARRAY_SIZE] = {*empty, *empty, *empty, *empty, *empty};
+std::string lineInput;
 
 void Scores::checkFile(){
     std::fstream file;

@@ -1,9 +1,13 @@
 #include "../include/utils.hpp"
 
-int board[BOARD_SIZE] = {};
+int board[BOARD_SIZE] = { 0, 0, 0, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0 };
 char board_selector[BOARD_WIDTH] = { ' ', ' ', ' ', ' ', ' ', ' ', ' ' };
-int selector, player = 1;
-std::string lineInput;
+int selector = 1, player = 1;
 
 PlayerData *player1 = new PlayerData("", 0);
 PlayerData *player2 = new PlayerData("", 0);

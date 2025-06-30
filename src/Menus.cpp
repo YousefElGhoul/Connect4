@@ -1,6 +1,7 @@
 #include "../include/Menus.hpp"
 
 void Menus::select(int menu){
+    std::string lineInput;
     switch (menu) {
     case START:
         Display::showMenu(START_MENU);
@@ -29,7 +30,6 @@ void Menus::select(int menu){
         Menus::select(GAME);
         break;
     case GAME:
-        selector = 0;
         Display::showBoard();
         GameNavigation::Nav();
         switch (isEven(player)){
@@ -96,7 +96,6 @@ void Menus::select(int menu){
         Display::showScores();
         Display::shellCommand(PAUSE);
         exitProgram();
-        break;
     default:
         std::cout << "\nMissing Screen\n";
         break;
@@ -105,5 +104,5 @@ void Menus::select(int menu){
 
 [[noreturn]] void exitProgram(){
     Scores::saveHighScores();
-    exit(0);
+    std::quick_exit(0);
 }
