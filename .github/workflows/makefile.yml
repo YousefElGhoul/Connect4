@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    name: 🛠️ Build with MSYS2 (UCRT64)
+    name: Build with MSYS2 (UCRT64)
     runs-on: windows-latest
 
     defaults:
@@ -27,12 +27,18 @@ jobs:
           make
           mingw-w64-ucrt-x86_64-gcc
 
-    - name: Clean
+    - name: Print g++ version
+      shell: msys2 {0}
+      run: g++ --version
+
+    - name: Clean previous build
+      shell: msys2 {0}
       run: make clean
 
     - name: Build project
-      run: make
-
+      shell: msys2 {0}
+      run: make all
+      
     - name: Upload built EXE
       uses: actions/upload-artifact@v4
       with:
