@@ -5,17 +5,21 @@ on:
 
 jobs:
   build:
+    name: 🛠️ Build with MSYS2 (UCRT64)
     runs-on: windows-latest
 
+    defaults:
+      run:
+        shell: msys2 {0}
+
     steps:
-    - name: Checkout code
+    - name: Checkout source
       uses: actions/checkout@v4
 
     - name: Set up MSYS2
       uses: msys2/setup-msys2@v2
       with:
         msystem: UCRT64
-        release: true
         update: true
         install: >-
           base-devel
@@ -23,32 +27,47 @@ jobs:
           make
           mingw-w64-ucrt-x86_64-gcc
 
-    - name: Print g++ version
-      shell: msys2 {0}
-      run: g++ --version
-
-    - name: Clean previous build
-      shell: msys2 {0}
+    - name: Clean
       run: make clean
 
     - name: Build project
-      shell: msys2 {0}
-      run: make all
+      run: make
 
-    - name: Decode certificate
+    - name: Upload built EXE
+      uses: actions/upload-artifact@v4
+      with:
+        name: unsigned-executables
+        path: output/*.exe
+
+  sign:
+    name: 🔏 Sign Executables
+    runs-on: windows-latest
+    needs: build  # wait for build job to finish
+
+    steps:
+    - name: Download unsigned EXE
+      uses: actions/download-artifact@v4
+      with:
+        name: unsigned-executables
+        path: unsigned
+
+    - name: Decode signing certificate
       run: |
         echo "${{ secrets.CERT_PFX_BASE64 }}" | base64 -d > devcert.pfx
       shell: bash
 
-    - name: Sign executables
+    - name: Sign EXE files
       run: |
-        $signtool = Get-Command signtool.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+        $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\" -Recurse -Filter signtool.exe |
+                      Where-Object { $_.FullName -like "*x64*" } |
+                      Select-Object -First 1
+
         if (-not $signtool) {
           throw "signtool.exe not found."
         }
 
-        Get-ChildItem -Path output\*.exe | ForEach-Object {
-          & $signtool.Source sign `
+        Get-ChildItem -Path unsigned\*.exe | ForEach-Object {
+          & "$($signtool.FullName)" sign `
             /f devcert.pfx `
             /p "${{ secrets.CERT_PASSWORD }}" `
             /fd sha256 `
@@ -58,8 +77,8 @@ jobs:
         }
       shell: powershell
 
-    - name: Upload signed executable
+    - name: Upload signed EXEs
       uses: actions/upload-artifact@v4
       with:
-        name: Connect4
-        path: output/*.exe
+        name: signed-executables
+        path: unsigned/*.exe
