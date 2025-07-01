@@ -71,8 +71,8 @@ all: $(OUTPUT) $(MAIN)
 $(OUTPUT):
 	$(MD) $(OUTPUT)
 
-$(MAIN): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $(OUTPUTMAIN) $(OBJECTS)
+$(MAIN): $(OBJECTS) $(RES_OBJ)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $(OUTPUTMAIN) $(OBJECTS) $(RES_OBJ)
 
 # Compile .cpp to .o into output folder
 $(OUTPUT)/%.o: $(SRC)/%.cpp
