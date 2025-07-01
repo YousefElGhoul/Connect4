@@ -33,7 +33,7 @@ jobs:
 
     - name: Build project
       shell: msys2 {0}
-      run: make
+      run: make all
 
     - name: Decode certificate
       run: |
