@@ -42,13 +42,16 @@ jobs:
 
     - name: Sign executables
       run: |
-        $signtool = Get-Command signtool.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+        $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\" -Recurse -Filter signtool.exe |
+                    Where-Object { $_.FullName -like "*x64*" } |
+                    Select-Object -First 1
+
         if (-not $signtool) {
           throw "signtool.exe not found."
         }
 
         Get-ChildItem -Path output\*.exe | ForEach-Object {
-          & $signtool.Source sign `
+          & "$($signtool.FullName)" sign `
             /f devcert.pfx `
             /p "${{ secrets.CERT_PASSWORD }}" `
             /fd sha256 `
@@ -57,6 +60,7 @@ jobs:
             $_.FullName
         }
       shell: powershell
+
 
     - name: Upload signed executable
       uses: actions/upload-artifact@v4
