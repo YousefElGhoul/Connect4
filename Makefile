@@ -1,89 +1,89 @@
 #
-# 'make'        builds executable 'main' (or 'main.exe' on Windows)
+# 'make'        builds the executable 'main' (or 'main.exe' on Windows)
 # 'make clean'  removes all object and executable files
 #
 
-CXX = g++
-RC = windres
+# -----------------------------#
+#         CONFIGURATION        #
+# -----------------------------#
 
-CXXFLAGS := -std=c++20 -Wall -Wextra -g
+CXX       := g++
+RC        := windres
+CXXFLAGS  := -std=c++20 -Wall -Wextra -g
 
-OUTPUT   := output
-SRC      := src
-INCLUDE  := include
-UNAME_S  := $(shell uname -s)
+OUTPUT    := output
+SRC       := src
+INCLUDE   := include
+ICON      := $(INCLUDE)/icon.ico
+RES       := $(SRC)/resource.rc
+RES_OBJ   := $(OUTPUT)/resource.o
 
-ifeq ($(UNAME_S),Linux)
-    MAIN    := main
-    RM      := rm -f
-    MD      := mkdir -p
-    FIXPATH = $1
-else ifeq ($(UNAME_S),Darwin)
-    MAIN    := main
-    RM      := rm -f
-    MD      := mkdir -p
-    FIXPATH = $1
-else ifneq (,$(findstring MINGW,$(UNAME_S)))
-    MAIN    := main.exe
-    RM      := rm -f
-    MD      := mkdir -p
-    FIXPATH = $1
-else ifneq (,$(findstring MSYS,$(UNAME_S)))
-    MAIN    := main.exe
-    RM      := rm -f
-    MD      := mkdir -p
-    FIXPATH = $1
+UNAME_S   := $(shell uname -s)
+
+ifeq ($(OS),Windows_NT)
+    IS_WINDOWS := 1
 else
-    $(error Unsupported OS: $(UNAME_S))
+    IS_WINDOWS := 0
 endif
 
-ICON       := $(INCLUDE)/icon.ico
-RES        := $(SRC)/resource.rc
-RES_OBJ    := $(OUTPUT)/resource.o
+ifeq ($(WINDOWS),)
+    MAIN      := main
+    RM        := rm -f
+    MD        := mkdir -p
+else
+    MAIN      := main.exe
+    RM        := rm -f
+    MD        := mkdir -p
+endif
 
-SOURCEDIRS     := $(shell find $(SRC) -type d)
-INCLUDEDIRS    := $(shell find $(INCLUDE) -type d)
-INCLUDES       := $(patsubst %,-I%, $(INCLUDEDIRS:%/=%))
-SOURCES        := $(wildcard $(patsubst %,%/*.cpp, $(SOURCEDIRS)))
-OBJECTS        := $(patsubst $(SRC)/%.cpp,$(OUTPUT)/%.o,$(SOURCES))
+OUTPUTMAIN := $(OUTPUT)/$(MAIN)
 
-# Append resource.o only on Windows
-ifeq ($(findstring MINGW,$(UNAME_S)),MINGW)
+# -----------------------------#
+#      FILES & DIRECTORIES     #
+# -----------------------------#
+
+SOURCEDIRS  := $(shell find $(SRC) -type d)
+INCLUDEDIRS := $(shell find $(INCLUDE) -type d)
+INCLUDES    := $(patsubst %,-I%, $(INCLUDEDIRS:%/=%))
+SOURCES     := $(wildcard $(patsubst %,%/*.cpp, $(SOURCEDIRS)))
+OBJECTS     := $(patsubst $(SRC)/%.cpp,$(OUTPUT)/%.o,$(SOURCES))
+
+ifeq ($(IS_WINDOWS),1)
     OBJECTS += $(RES_OBJ)
-else ifeq ($(findstring MSYS,$(UNAME_S)),MSYS)
-    OBJECTS += $(RES_OBJ)
 endif
 
-OUTPUTMAIN := $(call FIXPATH,$(OUTPUT)/$(MAIN))
+# -----------------------------#
+#            TARGETS           #
+# -----------------------------#
 
-# Resource compilation only on Windows
-ifeq ($(findstring MINGW,$(UNAME_S)),MINGW)
-$(RES_OBJ): $(RES) $(ICON)
-	$(RC) -I$(INCLUDE) $< -o $@
-else ifeq ($(findstring MSYS,$(UNAME_S)),MSYS)
-$(RES_OBJ): $(RES) $(ICON)
-	$(RC) -I$(INCLUDE) $< -o $@
-endif
-
-all: $(OUTPUT) $(MAIN)
-	@echo Executing 'all' complete!
+all: $(OUTPUT) $(OUTPUTMAIN)
+	@echo Build complete!
 
 $(OUTPUT):
 	$(MD) $(OUTPUT)
 
-$(MAIN): $(OBJECTS) $(RES_OBJ)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $(OUTPUTMAIN) $(OBJECTS) $(RES_OBJ)
+$(OUTPUTMAIN): $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $(OBJECTS)
 
-# Compile .cpp to .o into output folder
+# Compile C++ files to object files
 $(OUTPUT)/%.o: $(SRC)/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
-.PHONY: clean
+# Compile resource file to object file (Windows only)
+$(RES_OBJ): $(RES) $(ICON)
+ifeq ($(IS_WINDOWS),1)
+	$(RC) $(INCLUDES) $< -o $@
+endif
+
+# -----------------------------#
+#        CLEAN & RUN           #
+# -----------------------------#
+
+.PHONY: clean run
+
 clean:
-	$(RM) $(OUTPUT)/main.exe $(OUTPUT)/main
-	$(RM) $(OUTPUT)/*.o
+	$(RM) $(OUTPUT)/$(MAIN) $(OBJECTS)
 	@echo Cleanup complete!
 
 run: all
 	./$(OUTPUTMAIN)
-	@echo Executing 'run: all' complete!
