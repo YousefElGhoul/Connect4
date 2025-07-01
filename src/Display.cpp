@@ -148,7 +148,7 @@ void Display::addSelectedButton(std::string buttonText) {
     addLine(arr, SELECTED_BUTTON_TEMPLATE_4);
 }
 void Display::addBoard(){
-    addLine(arr,  std::format("\n{} (\u001b[31mO\u001b[36m) Score [{}]  -  {} (\u001b[33mO\u001b[36m) Score [{}]\n\n", player1->getName(), player1->getScore(), player2->getName(), player2->getScore()));
+    addLine(arr,  std::format("\n{} (\u001b[31m●\u001b[36m) Score [{}]  -  {} (\u001b[33m●\u001b[36m) Score [{}]\n\n", player1->getName(), player1->getScore(), player2->getName(), player2->getScore()));
     addLine(arr,  std::format("\t\t\t\t\t\t\tTurn: {}\n", getCurrentPlayersName(player)));
     addLine(arr,              "\t\t\t\t\t _________________________________________\n");
     for (int i = 0; i < BOARD_SIZE; i += 7) {
@@ -174,9 +174,9 @@ void Display::addScores(){
 std::string Display::translateBoard(int n){
     switch (n) {
         case 1:
-            return "\u001b[31mO\u001b[36m"; // Red
+            return "\u001b[31m●\u001b[36m"; // Red
         case 2:
-            return "\u001b[33mO\u001b[36m"; // Yellow
+            return "\u001b[33m●\u001b[36m"; // Yellow
         case 0:
         default:
             return " ";                     // Empty

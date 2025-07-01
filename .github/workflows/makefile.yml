@@ -1,4 +1,4 @@
-name: Build with MSYS2 (ucrt64)
+name: Build with MSYS2 (ucrt64) and Sign
 
 on:
   workflow_dispatch:
@@ -6,10 +6,6 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-
-    defaults:
-      run:
-        shell: msys2 {0}  # Run all commands in MSYS2 environment
 
     steps:
     - name: Checkout code
@@ -28,16 +24,42 @@ jobs:
           mingw-w64-ucrt-x86_64-gcc
 
     - name: Print g++ version
+      shell: msys2 {0}
       run: g++ --version
 
     - name: Clean previous build
+      shell: msys2 {0}
       run: make clean
 
     - name: Build project
+      shell: msys2 {0}
       run: make
 
-    - name: Upload executable
+    - name: Decode certificate
+      run: |
+        echo "${{ secrets.CERT_PFX_BASE64 }}" | base64 -d > devcert.pfx
+      shell: bash
+
+    - name: Sign executables
+      run: |
+        $signtool = Get-Command signtool.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+        if (-not $signtool) {
+          throw "signtool.exe not found."
+        }
+
+        Get-ChildItem -Path output\*.exe | ForEach-Object {
+          & $signtool.Source sign `
+            /f devcert.pfx `
+            /p "${{ secrets.CERT_PASSWORD }}" `
+            /fd sha256 `
+            /td sha256 `
+            /tr http://timestamp.digicert.com `
+            $_.FullName
+        }
+      shell: powershell
+
+    - name: Upload signed executable
       uses: actions/upload-artifact@v4
       with:
-        name: TicTacToe
+        name: Connect4
         path: output/*.exe
