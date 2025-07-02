@@ -4,6 +4,7 @@
 #include <conio.h>
 #include "Display.hpp"
 #include "Menus.hpp"
+#include "utils.hpp"
 
 #define KEY_UP                      72
 #define KEY_DOWN                    80

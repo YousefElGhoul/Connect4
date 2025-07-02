@@ -81,4 +81,6 @@ int Connect4::checkWin() {
 void Connect4::clearBoard() {
     for (int i = 0; i < BOARD_SIZE; i++)
         board[i] = 0;
+    for (int i = 0; i < BOARD_WIDTH; i++)
+        board_selector[i] = ' ';
 }

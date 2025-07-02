@@ -46,7 +46,7 @@ jobs:
         path: output/*.exe
 
   sign:
-    name: 🔏 Sign Executables
+    name: Sign Executables
     runs-on: windows-latest
     needs: build  # wait for build job to finish
 

@@ -157,8 +157,7 @@ void Display::addBoard(){
         addLine(arr,                "\t\t\t\t\t|_____|_____|_____|_____|_____|_____|_____|\n");
     }
     addLine(arr, "\n\t\t\t\t\t ");
-    for (int i = 0; i < BOARD_WIDTH; i++)
-        addLine(arr, std::format("  {}   ", board_selector[i]));
+    addLine(arr, std::format("  {}     {}     {}     {}     {}     {}     {}   ", board_selector[0], board_selector[1], board_selector[2], board_selector[3], board_selector[4], board_selector[5], board_selector[6]));
     addLine(arr, "\n\n");
 }
 void Display::addScores(){

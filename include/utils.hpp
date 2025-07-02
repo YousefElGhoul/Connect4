@@ -16,5 +16,6 @@ extern PlayerData *player2;
 
 int isEven(int x);
 std::string getCurrentPlayersName(int player);
+bool allMatch(const char* arr, size_t length, char target);
 
 #endif
