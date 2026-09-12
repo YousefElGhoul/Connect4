@@ -1,3 +1,29 @@
+<!--
+---
+portfolio:
+  title: "Connect 4"
+  subtitle: "Cross-Platform CLI Game"
+  type:
+    - C++
+    - CLI
+  status: "Completed"
+  time: "2025"
+
+  description: "A console-based implementation of Connect Four in C++ featuring keyboard-driven navigation, customizable player names, persistent high scores, and complete game-rule handling."
+
+  skills:
+    - C++
+    - CLI
+    - Make
+    - Game Logic
+    - Data Structures
+    - Cross-Platform Development
+
+  live: null
+  slug: "connect4"
+---
+-->
+
 # Connect 4
 
 This is a simple C++ based Connect 4 game
